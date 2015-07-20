@@ -26,7 +26,7 @@ function RunTask(dir, studentData) {
 		callback: function (err, finalData) {
 			if (err) {
 				//something fails
-				console.log(err);
+				return console.log(err);
 			}
 			//All data comes
 			console.log("============");

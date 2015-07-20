@@ -31,7 +31,7 @@ SerialRunner.prototype = {
 			var c = function (err, outData) {
 				//Success Handler
 				if (err) {
-					callback(err);
+					return callback(err);
 				}
 				if (self.currentIndex + 1 === self.list.length) {
 					//It is the last is the chain
@@ -53,7 +53,9 @@ SerialRunner.prototype = {
 	start: function () {
 		var self = this;
 		fs.readdir(__dirname + "/" + this.dir, function (err, files) {
-			if (err) return;
+			if (err) {
+				return self.callback(err);
+			}
 			var taskFiles = [];
 			files.forEach(function (f) {
 				taskFiles.push(self.dir + "/" + f);
