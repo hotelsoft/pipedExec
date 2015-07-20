@@ -9,18 +9,12 @@ function findTopper(data) {
 	return JSON.parse(JSON.stringify(data[highestTotalIndex]));
 };
 
-if (module === undefined) {
-	var module = {};
-}
-module.exports = {
-	execute: function () {
-		try {
-			var data1 = findTopper(executor.data);
-			executor.callback(null, data1);
-		} catch (ex) {
-			executor.callback(ex);
-			//throw ex;
-		}
+(function () {
+	try {
+		var data1 = findTopper(executor.data);
+		executor.callback(null, data1);
+	} catch (ex) {
+		executor.callback(ex);
+		//throw ex;
 	}
-};
-module.exports.execute();
+})

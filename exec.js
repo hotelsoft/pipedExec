@@ -1,6 +1,4 @@
 var SerialRunner = require("./SerialRunner.js");
-var fs = require('fs');
-var vm = require('vm');
 
 var studentData = [
 	{"name": "akash", "marks": {"hindi": 98, "english": 90, "math": 81, "programming": 56}},
@@ -14,14 +12,6 @@ var studentData = [
 ];
 
 
-function executeFiles(filesName, context) {
-	fs.readFile(filesName, function (err, data) {
-		if (err) throw err;
-		var code = data.toString();
-		vm.runInNewContext(code, context);
-	});
-}
-
 function RunTask(dir, studentData) {
 	console.log("Input Data -> ", studentData);
 	var context = {
@@ -32,12 +22,7 @@ function RunTask(dir, studentData) {
 	};
 	var runner = new SerialRunner({
 		dir: dir,
-		initialData: studentData,
-		run: function (fileName, inData, callback) {
-			context.executor.data = inData;
-			context.executor.callback = callback;
-			executeFiles(fileName, context);
-		},
+		context: context,
 		callback: function (err, finalData) {
 			if (err) {
 				//something fails
@@ -46,6 +31,7 @@ function RunTask(dir, studentData) {
 			//All data comes
 			console.log("============");
 			console.log("Topper details is -> ", finalData);
+			console.log("Initial Data -> ", finalData);
 		}
 	});
 	runner.start();
