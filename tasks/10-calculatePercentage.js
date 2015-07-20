@@ -19,9 +19,9 @@ module.exports = {
 	execute: function () {
 		try {
 			var data1 = calculatePercentage(executor.data);
-			executor.successCallback(data1);
+			executor.callback(null, data1);
 		} catch (ex) {
-			executor.failCallback(ex);
+			executor.callback(ex);
 			//throw ex;
 		}
 	}

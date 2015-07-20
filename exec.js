@@ -30,36 +30,34 @@ function SerialRunner(Obj) {
 	this.list = Obj.list;
 	this.run = Obj.run;
 	this.initialData = Obj.initialData;
-	this.successCallback = Obj.success;
-	this.failCallback = Obj.fail;
+	this.callback = Obj.callback;
 };
 
 SerialRunner.prototype = {
 	constructor: SerialRunner,
-	next: function (inData, successCallback, failCallback) {
+	next: function (inData, callback) {
 		var self = this;
 		this.currentIndex = this.currentIndex + 1;
 		if (this.currentIndex <= this.list.length) {
-			this.run(this.list[this.currentIndex], inData, function (outData) {
+			this.run(this.list[this.currentIndex], inData, function (err, outData) {
 				//Success Handler
+				if (err) {
+					callback(err);
+				}
 				if (self.currentIndex + 1 === self.list.length) {
 					//It is the last is the chain
-					successCallback(outData);
+					callback(null, outData);
 
 				} else {
 					//or Pass to next script.
-					self.next(outData, successCallback, failCallback);
+					self.next(outData, callback);
 				}
-
-			}, function (ex) {
-				//Failure
-				failCallback(ex);
 			});
 		}
 		return inData;
 	},
 	start: function () {
-		this.next(this.initialData, this.successCallback, this.failCallback);
+		this.next(this.initialData, this.callback);
 	}
 };
 
@@ -81,20 +79,19 @@ function RunTask(dir, studentData) {
 		var runner = new SerialRunner({
 			list: taskFiles,
 			initialData: studentData,
-			run: function (fileName, inData, successCallback, failCallback) {
+			run: function (fileName, inData, callback) {
 				context.executor.data = inData;
-				context.executor.successCallback = successCallback;
-				context.executor.failCallback = failCallback;
+				context.executor.callback = callback;
 				executeFiles(fileName, context);
 			},
-			success: function (finalData) {
+			callback: function (err, finalData) {
+				if (err) {
+					//something fails
+					console.log(err);
+				}
 				//All data comes
 				console.log("============");
 				console.log("Topper details is -> ", finalData);
-			},
-			fail: function (ex) {
-				//something fails
-				console.log(ex);
 			}
 		});
 		runner.start();
