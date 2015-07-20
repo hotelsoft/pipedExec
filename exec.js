@@ -31,7 +31,6 @@ function RunTask(dir, studentData) {
 			//All data comes
 			console.log("============");
 			console.log("Topper details is -> ", finalData);
-			console.log("Initial Data -> ", finalData);
 		}
 	});
 	runner.start();
