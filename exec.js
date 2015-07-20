@@ -18,36 +18,87 @@ function executeFiles(filesName, context) {
 	fs.readFile(filesName, function (err, data) {
 		if (err) throw err;
 		var code = data.toString();
-		console.log(vm.runInNewContext(code, context));
+		vm.runInNewContext(code, context);
 	});
 }
 
 
+//This is kind of async reducer !
+
+function SerialRunner(Obj) {
+	this.currentIndex = -1;
+	this.list = Obj.list;
+	this.run = Obj.run;
+	this.initialData = Obj.initialData;
+	this.successCallback = Obj.success;
+	this.failCallback = Obj.fail;
+};
+
+SerialRunner.prototype = {
+	constructor: SerialRunner,
+	next: function (inData, successCallback, failCallback) {
+		var self = this;
+		this.currentIndex = this.currentIndex + 1;
+		if (this.currentIndex <= this.list.length) {
+			this.run(this.list[this.currentIndex], inData, function (outData) {
+				//Success Handler
+				if (self.currentIndex + 1 === self.list.length) {
+					//It is the last is the chain
+					successCallback(outData);
+
+				} else {
+					//or Pass to next script.
+					self.next(outData, successCallback, failCallback);
+				}
+
+			}, function (ex) {
+				//Failure
+				failCallback(ex);
+			});
+		}
+		return inData;
+	},
+	start: function () {
+		this.next(this.initialData, this.successCallback, this.failCallback);
+	}
+};
+
 function RunTask(dir, studentData) {
-	console.log("req", studentData.length);
+	console.log("Input Data -> ", studentData);
 	var context = {
 		console: console,
-		require: require,
 		executor: {
-			data: studentData,
-			onceDataAvailable: function (res) {
-				console.log("res", res.length)
-			}
+			data: studentData
 		}
 	};
 	fs.readdir(__dirname + "/" + dir, function (err, files) {
 		if (err) return;
-
 		var taskFiles = [];
 		files.forEach(function (f) {
-			console.log('Files: ' + f);
-			//run files
 			taskFiles.push(dir + "/" + f);
-
 		});
 
-		executeFiles(taskFiles, context);
+		var runner = new SerialRunner({
+			list: taskFiles,
+			initialData: studentData,
+			run: function (fileName, inData, successCallback, failCallback) {
+				context.executor.data = inData;
+				context.executor.successCallback = successCallback;
+				context.executor.failCallback = failCallback;
+				executeFiles(fileName, context);
+			},
+			success: function (finalData) {
+				//All data comes
+				console.log("============");
+				console.log("Topper details is -> ", finalData);
+			},
+			fail: function (ex) {
+				//something fails
+				console.log(ex);
+			}
+		});
+		runner.start();
 	});
 }
 
-console.log(RunTask("./tasks", studentData));
+RunTask("./tasks", studentData);

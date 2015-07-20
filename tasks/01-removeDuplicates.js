@@ -1,6 +1,4 @@
 // It accept array of Objects. It remove duplicate entries based on identical name;
-
-
 function removeDuplicate(data) {
 	var newData = [];
 	var keys = {};
@@ -11,10 +9,10 @@ function removeDuplicate(data) {
 		}
 	});
 	return newData;
-
 };
-var module = {};
-
+if (module === undefined) {
+	var module = {};
+}
 module.exports = {
 	execute: function () {
 		try {
@@ -23,9 +21,10 @@ module.exports = {
 			 };*/
 
 			var data1 = removeDuplicate(executor.data);
-			executor.onceDataAvailable(data1);
+			executor.successCallback(data1);
 		} catch (ex) {
-			throw ex;
+			executor.failCallback(ex);
+			//throw ex;
 		}
 	}
 };
