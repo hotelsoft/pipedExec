@@ -9,9 +9,7 @@ var studentData = [
 	{"name": "deepak", "marks": {"hindi": 28, "english": 32, "math": 31, "programming": 79}}
 ];
 
-
 var vm = require('vm');
-
 var fs = require('fs');
 
 function executeFiles(filesName, context) {
@@ -22,15 +20,14 @@ function executeFiles(filesName, context) {
 	});
 }
 
-
 //This is kind of async reducer !
 
 function SerialRunner(Obj) {
 	this.currentIndex = -1;
-	this.list = Obj.list;
 	this.run = Obj.run;
 	this.initialData = Obj.initialData;
 	this.callback = Obj.callback;
+	this.dir = Obj.dir;
 };
 
 SerialRunner.prototype = {
@@ -57,7 +54,16 @@ SerialRunner.prototype = {
 		return inData;
 	},
 	start: function () {
-		this.next(this.initialData, this.callback);
+		var self = this;
+		fs.readdir(__dirname + "/" + this.dir, function (err, files) {
+			if (err) return;
+			var taskFiles = [];
+			files.forEach(function (f) {
+				taskFiles.push(self.dir + "/" + f);
+			});
+			self.list = taskFiles;
+			self.next(self.initialData, self.callback);
+		});
 	}
 };
 
@@ -69,33 +75,25 @@ function RunTask(dir, studentData) {
 			data: studentData
 		}
 	};
-	fs.readdir(__dirname + "/" + dir, function (err, files) {
-		if (err) return;
-		var taskFiles = [];
-		files.forEach(function (f) {
-			taskFiles.push(dir + "/" + f);
-		});
-
-		var runner = new SerialRunner({
-			list: taskFiles,
-			initialData: studentData,
-			run: function (fileName, inData, callback) {
-				context.executor.data = inData;
-				context.executor.callback = callback;
-				executeFiles(fileName, context);
-			},
-			callback: function (err, finalData) {
-				if (err) {
-					//something fails
-					console.log(err);
-				}
-				//All data comes
-				console.log("============");
-				console.log("Topper details is -> ", finalData);
+	var runner = new SerialRunner({
+		dir: dir,
+		initialData: studentData,
+		run: function (fileName, inData, callback) {
+			context.executor.data = inData;
+			context.executor.callback = callback;
+			executeFiles(fileName, context);
+		},
+		callback: function (err, finalData) {
+			if (err) {
+				//something fails
+				console.log(err);
 			}
-		});
-		runner.start();
+			//All data comes
+			console.log("============");
+			console.log("Topper details is -> ", finalData);
+		}
 	});
+	runner.start();
 }
 
 RunTask("./tasks", studentData);
