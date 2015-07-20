@@ -1,3 +1,7 @@
+var SerialRunner = require("./SerialRunner.js");
+var fs = require('fs');
+var vm = require('vm');
+
 var studentData = [
 	{"name": "akash", "marks": {"hindi": 98, "english": 90, "math": 81, "programming": 56}},
 	{"name": "narendra", "marks": {"hindi": 64, "english": 40, "math": 88, "programming": 75}},
@@ -9,8 +13,6 @@ var studentData = [
 	{"name": "deepak", "marks": {"hindi": 28, "english": 32, "math": 31, "programming": 79}}
 ];
 
-var vm = require('vm');
-var fs = require('fs');
 
 function executeFiles(filesName, context) {
 	fs.readFile(filesName, function (err, data) {
@@ -19,53 +21,6 @@ function executeFiles(filesName, context) {
 		vm.runInNewContext(code, context);
 	});
 }
-
-//This is kind of async reducer !
-
-function SerialRunner(Obj) {
-	this.currentIndex = -1;
-	this.run = Obj.run;
-	this.initialData = Obj.initialData;
-	this.callback = Obj.callback;
-	this.dir = Obj.dir;
-};
-
-SerialRunner.prototype = {
-	constructor: SerialRunner,
-	next: function (inData, callback) {
-		var self = this;
-		this.currentIndex = this.currentIndex + 1;
-		if (this.currentIndex <= this.list.length) {
-			this.run(this.list[this.currentIndex], inData, function (err, outData) {
-				//Success Handler
-				if (err) {
-					callback(err);
-				}
-				if (self.currentIndex + 1 === self.list.length) {
-					//It is the last is the chain
-					callback(null, outData);
-
-				} else {
-					//or Pass to next script.
-					self.next(outData, callback);
-				}
-			});
-		}
-		return inData;
-	},
-	start: function () {
-		var self = this;
-		fs.readdir(__dirname + "/" + this.dir, function (err, files) {
-			if (err) return;
-			var taskFiles = [];
-			files.forEach(function (f) {
-				taskFiles.push(self.dir + "/" + f);
-			});
-			self.list = taskFiles;
-			self.next(self.initialData, self.callback);
-		});
-	}
-};
 
 function RunTask(dir, studentData) {
 	console.log("Input Data -> ", studentData);
