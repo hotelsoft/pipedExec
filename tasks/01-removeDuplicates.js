@@ -13,7 +13,6 @@ function removeDuplicate(data) {
 
 (function () {
 	try {
-		console.log(executor.data);
 		var data1 = removeDuplicate(executor.data);
 		executor.callback(null, data1);
 	} catch (ex) {
