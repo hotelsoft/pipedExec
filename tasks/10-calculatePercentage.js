@@ -20,4 +20,4 @@ function calculatePercentage(data) {
 		executor.callback(ex);
 		//throw ex;
 	}
-});
+})();

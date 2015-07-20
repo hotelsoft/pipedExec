@@ -17,4 +17,4 @@ function findTopper(data) {
 		executor.callback(ex);
 		//throw ex;
 	}
-})
+})();
